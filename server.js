@@ -33,11 +33,41 @@ const upload = multer({ dest: "uploads/" });
 
 const app = express();
 
-// Middleware
-app.use(cors());
+// Security middleware (production-safe defaults)
+// - Stops Express from advertising its version (X-Powered-By)
+// - Adds basic hardening headers; tuned to work with the static frontend
+app.disable("x-powered-by");
+app.use((req, res, next) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Referrer-Policy", "no-referrer");
+  res.setHeader("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+  return next();
+});
+
+// CORS — restrict to allowed origins when CORS_ORIGIN is set (comma-separated).
+// Defaults to allowing the same-origin requests (no header needed) plus any
+// explicitly configured origins. For production, set CORS_ORIGIN to your domain(s).
+const allowedOrigins = (process.env.CORS_ORIGIN || "")
+  .split(",")
+  .map((o) => o.trim())
+  .filter(Boolean);
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests without an Origin (same-origin, curl, server-to-server)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      return callback(new Error("Not allowed by CORS"));
+    },
+  })
+);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, "/")));
+// Serve ONLY the public/ folder — never the project root (protects .env, source, etc.)
+app.use(express.static(path.join(__dirname, "public")));
 
 // Ensure uploads directory exists
 if (!fs.existsSync(path.join(__dirname, "uploads"))) {
@@ -612,12 +642,12 @@ app.get("/api/db-status", authenticateUser, async (req, res) => {
 // -------------------------------------------------------------
 // HTML Page Serving
 // -------------------------------------------------------------
-app.get("/", (req, res) => res.sendFile(path.join(__dirname, "index.html")));
-app.get("/login", (req, res) => res.sendFile(path.join(__dirname, "login.html")));
-app.get("/signup", (req, res) => res.sendFile(path.join(__dirname, "signup.html")));
-app.get("/dashboard", (req, res) => res.sendFile(path.join(__dirname, "dashboard.html")));
-app.get("/about", (req, res) => res.sendFile(path.join(__dirname, "about.html")));
-app.get("/db-status", (req, res) => res.sendFile(path.join(__dirname, "db-status.html")));
+app.get("/", (req, res) => res.sendFile(path.join(__dirname, "public", "index.html")));
+app.get("/login", (req, res) => res.sendFile(path.join(__dirname, "public", "login.html")));
+app.get("/signup", (req, res) => res.sendFile(path.join(__dirname, "public", "signup.html")));
+app.get("/dashboard", (req, res) => res.sendFile(path.join(__dirname, "public", "dashboard.html")));
+app.get("/about", (req, res) => res.sendFile(path.join(__dirname, "public", "about.html")));
+app.get("/db-status", (req, res) => res.sendFile(path.join(__dirname, "public", "db-status.html")));
 
 // 404 Fallback for unknown API routes
 app.use("/api", (req, res) => {

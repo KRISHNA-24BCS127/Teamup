@@ -31,8 +31,8 @@ jobs:
       - name: Syntax check server & client JS
         run: |
           node --check server.js
-          node --check dashboard.js
-          node --check script.js
+          node --check public/dashboard.js
+          node --check public/script.js
           node --check scripts/seedData.js
           node --check scripts/seed.js
           node --check utils/parser.js

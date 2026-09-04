@@ -125,6 +125,48 @@ curl "http://localhost:5000/api/search/teammates?skills=Machine%20Learning"
 
 ---
 
+## 🌍 Deploying for Production
+
+Teamup is a full-stack Node/Express app with a MongoDB database and file uploads, so it needs a
+**real server host** (not GitHub Pages, which only serves static files). Good options that offer a
+free tier: **Render**, **Railway**, or **Fly.io**.
+
+### Prerequisites
+
+1. **MongoDB Atlas** must accept connections from the deployed server. In Atlas →
+   **Network Access** → add **`0.0.0.0/0`** (allow from anywhere). Keep strong credentials and store
+   them only in the host's environment variables — never in the repo.
+2. Your code is on GitHub (e.g. `github.com/KRISHNA-24BCS127/Teamup`).
+
+### Deploy on Render (recommended)
+
+1. Push this repository to GitHub.
+2. Create an account at [render.com](https://render.com) → **New → Web Service** → connect the repo
+   (or use **New → Blueprint** with the included [`render.yaml`](render.yaml)).
+3. Configure the service:
+   - **Build command:** `npm install`
+   - **Start command:** `npm start`
+   - **Environment variables:**
+     - `MONGODB_URI` = your Atlas connection string, e.g.
+       `mongodb+srv://<user>:<password>@<cluster>.mongodb.net/<dbname>?appName=<app>`
+     - `CORS_ORIGIN` = your deployed URL, e.g. `https://teamup.onrender.com`
+4. Deploy. Render gives you a public `https://your-service.onrender.com` URL.
+
+> `Procfile` and `render.yaml` are included so the platform knows how to run the app.
+
+### 🛡️ Production security notes
+
+- **Never commit `.env` or `atlas-credentials.env`.** They are git-ignored. `.env.example` is the
+  safe template — fill in your real values only in the host's secret store.
+- The server now serves **only the `public/` folder** as static assets. This prevents exposing
+  source files, `server.js`, or credentials that the old `express.static(__dirname)` setup leaked.
+- CORS is restricted to the domains in `CORS_ORIGIN`. Leave it unset for same-origin use.
+- For real production auth you should replace the demo SHA-256 password hashing with **bcrypt/argon2**
+  and stored uploaded resumes in cloud storage (the current `uploads/` disk storage is wiped on every
+  redeploy and is only suitable for parsing temp files).
+
+---
+
 ## 📁 Project Structure
 
 ```
@@ -142,8 +184,9 @@ Teamup/
 │   └── parser.js
 ├── uploads/                 # Temporary upload storage (.gitkeep only)
 ├── server.js                # Application server & API controller
-├── *.html                   # Landing, login, signup, dashboard pages
-└── *.js                     # Client-side logic
+├── public/                  # Static frontend served by Express (HTML/CSS/JS/images)
+├── Procfile                 # Platform start command (node server.js)
+└── render.yaml              # Render blueprint for deployment
 ```
 
 ---
