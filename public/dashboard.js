@@ -30,6 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
   loadUserProfile();
   fetchTeammates();
   setupSkillAutocomplete();
+  loadTeamRequests();
 
   if (findBtn) {
     findBtn.addEventListener("click", () => fetchTeammates());
@@ -75,11 +76,17 @@ document.addEventListener("DOMContentLoaded", () => {
         .map(s => `<span style="display:inline-block; background:rgba(140,125,255,0.25); border:1px solid #8c7dff; border-radius:12px; padding:3px 10px; margin:2px; font-size:12px;">${escapeHtml(s)}</span>`)
         .join(" ");
 
+      const isBooked = u.teamStatus === "booked";
+      const teamBadgeHtml = isBooked
+        ? `<span style="display:inline-block; background:rgba(255,193,7,0.18); color:#ffd700; border:1px solid rgba(255,193,7,0.55); padding:3px 12px; border-radius:14px; font-size:12px; font-weight:600;">🔒 Booked — ${escapeHtml(u.teamName || "Team")}</span>`
+        : `<span style="display:inline-block; background:rgba(40,167,69,0.2); color:#52e379; border:1px solid rgba(40,167,69,0.5); padding:3px 12px; border-radius:14px; font-size:12px; font-weight:600;">✅ Available — not in a team</span>`;
+
       profileDiv.innerHTML = `
         <div style="display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:15px;">
           <div>
             <h3 style="font-size:1.4rem; color:#fff; margin-bottom:5px;">👋 Welcome, ${escapeHtml(u.fullName)}</h3>
             <p style="color:#e0c3fc; font-size:0.9rem; margin-bottom:8px;">📧 ${escapeHtml(u.email)} | ⏱️ Availability: <strong>${escapeHtml(u.availability || "Not specified")}</strong></p>
+            <div style="margin-bottom:8px;">${teamBadgeHtml}</div>
             <p style="color:#eee; font-size:0.95rem; margin-bottom:10px;">${escapeHtml(u.bio || "No bio provided yet.")}</p>
             <div><strong>Skills:</strong> ${skillsBadgeHtml || "<em>None added</em>"}</div>
           </div>
@@ -237,6 +244,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const cleanId = escapeHtml(String(t._id || t.id || "ID-" + Math.random().toString(36).substr(2, 6)));
 
+    const booked = t.teamStatus === "booked";
+    const teamBadge = booked
+      ? `<span style="display:inline-block; background:rgba(255,193,7,0.18); color:#ffd700; border:1px solid rgba(255,193,7,0.55); padding:2px 10px; border-radius:12px; font-size:11px; margin-top:4px;">🔒 In team: ${escapeHtml(t.teamName || "Team")}</span>`
+      : `<span style="display:inline-block; background:rgba(40,167,69,0.2); color:#52e379; border:1px solid rgba(40,167,69,0.5); padding:2px 10px; border-radius:12px; font-size:11px; margin-top:4px;">✅ Free to join</span>`;
+
+    const requestBtn = booked
+      ? `<button disabled class="styled-btn" style="width:100%; padding:10px 0; margin-top:5px; font-size:13px; opacity:0.55; cursor:not-allowed;">🔒 Booked — unavailable</button>`
+      : `<button onclick="window.showRequestModal('${cleanId}', '${escapeJsString(t.name || "Teammate")}')" class="styled-btn" style="width:100%; padding:10px 0; margin-top:5px; font-size:13px;">🤝 Send Team Request</button>`;
+
     return `
       <div class="teammate-card" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.18); border-radius:16px; padding:20px; margin-bottom:20px; box-shadow:0 4px 16px rgba(0,0,0,0.25);">
         <div style="display:flex; align-items:center; gap:15px; margin-bottom:12px;">
@@ -246,6 +262,8 @@ document.addEventListener("DOMContentLoaded", () => {
             <span style="display:inline-block; background:rgba(40,167,69,0.2); color:#52e379; border:1px solid rgba(40,167,69,0.5); padding:2px 8px; border-radius:12px; font-size:11px; margin-top:4px;">
               ⏱️ ${availability}
             </span>
+            <br />
+            ${teamBadge}
           </div>
         </div>
 
@@ -268,9 +286,7 @@ document.addEventListener("DOMContentLoaded", () => {
           ${projectsHtml}
         </div>
 
-        <button onclick="window.showConnectModal('${escapeJsString(t.name || "Teammate")}', '${cleanId}', '${escapeJsString(t.resumeUrl || "")}')" class="styled-btn" style="width:100%; padding:10px 0; margin-top:5px; font-size:13px;">
-          🤝 Connect with ${name.split(" ")[0]}
-        </button>
+        ${requestBtn}
       </div>
     `;
   }
@@ -398,5 +414,166 @@ document.addEventListener("DOMContentLoaded", () => {
   function escapeJsString(str) {
     if (!str) return "";
     return String(str).replace(/\\/g, "\\\\").replace(/'/g, "\\'");
+  }
+
+  // -----------------------------------------------------------
+  // Team Requests (send / receive / accept / decline / cancel)
+  // -----------------------------------------------------------
+  const trContainer = document.getElementById("teamRequests");
+  const trList = document.getElementById("teamRequestsList");
+
+  function timeAgo(iso) {
+    if (!iso) return "";
+    const diff = Date.now() - new Date(iso).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return "just now";
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    const days = Math.floor(hrs / 24);
+    return `${days}d ago`;
+  }
+
+  window.showRequestModal = function(userId, userName) {
+    const modalEl = document.getElementById("requestModal");
+    const nameEl = document.getElementById("requestTargetName");
+    const hiddenId = document.getElementById("requestTargetId");
+    const msgEl = document.getElementById("requestMessage");
+    if (nameEl) nameEl.textContent = userName;
+    if (hiddenId) hiddenId.value = userId;
+    if (msgEl) msgEl.value = "";
+    if (modalEl) modalEl.style.display = "flex";
+  };
+
+  window.closeRequestModal = function() {
+    const modalEl = document.getElementById("requestModal");
+    if (modalEl) modalEl.style.display = "none";
+  };
+
+  window.submitTeamRequest = async function(e) {
+    e.preventDefault();
+    const hiddenId = document.getElementById("requestTargetId");
+    const msgEl = document.getElementById("requestMessage");
+    const errEl = document.getElementById("requestError");
+    if (errEl) errEl.textContent = "";
+    try {
+      const res = await fetch("/api/team-requests", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ toUserId: hiddenId ? hiddenId.value : "", message: msgEl ? msgEl.value.trim() : "" })
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message || "Failed to send request");
+      window.closeRequestModal();
+      loadTeamRequests();
+    } catch (err) {
+      if (errEl) errEl.textContent = err.message;
+    }
+  };
+
+  async function loadTeamRequests() {
+    if (!trContainer || !trList) return;
+    try {
+      const res = await fetch("/api/team-requests", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.status === 401) {
+        localStorage.removeItem("authToken");
+        window.location.href = "login.html?redirect=dashboard.html";
+        return;
+      }
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message || "Failed to load requests");
+      renderTeamRequests(data.requests || []);
+    } catch (err) {
+      console.error("Team requests load error:", err);
+      if (trList) trList.innerHTML = `<p style="color:#ff8b8b; font-size:13px; margin:0;">Couldn't load requests: ${escapeHtml(err.message)}</p>`;
+    }
+  }
+
+  function renderTeamRequests(requests) {
+    const pendingIncoming = requests.filter(r => r.direction === "incoming" && r.status === "pending");
+    const pendingOutgoing = requests.filter(r => r.direction === "outgoing" && r.status === "pending");
+    const history = requests.filter(r => r.status !== "pending").slice(0, 6);
+
+    const badge = document.getElementById("trCountBadge");
+    if (badge) {
+      badge.textContent = pendingIncoming.length;
+      badge.style.display = pendingIncoming.length > 0 ? "inline-block" : "none";
+    }
+
+    let html = "";
+    if (pendingIncoming.length > 0) {
+      html += `<div style="margin-bottom:12px; font-size:13px; color:#e0c3fc; font-weight:600;">📥 Incoming (${pendingIncoming.length})</div>`;
+      html += pendingIncoming.map(r => renderRequestRow(r)).join("");
+    }
+    if (pendingOutgoing.length > 0) {
+      html += `<div style="margin-bottom:8px; margin-top:14px; font-size:13px; color:#e0c3fc; font-weight:600;">📤 Sent by you (${pendingOutgoing.length})</div>`;
+      html += pendingOutgoing.map(r => renderRequestRow(r)).join("");
+    }
+    if (history.length > 0) {
+      html += `<div style="margin-bottom:8px; margin-top:14px; font-size:12px; color:#bbb; font-weight:600;">🕘 History</div>`;
+      html += history.map(r => renderRequestRow(r, true)).join("");
+    }
+    if (!html) {
+      html = `<p style="color:#ccc; font-size:13px; margin:0;">No team requests yet. Send one from a teammate card below 👇</p>`;
+    }
+    trList.innerHTML = html;
+
+    trList.querySelectorAll("[data-accept]").forEach(btn =>
+      btn.addEventListener("click", () => respondRequest(btn.getAttribute("data-accept"), "accept")));
+    trList.querySelectorAll("[data-decline]").forEach(btn =>
+      btn.addEventListener("click", () => respondRequest(btn.getAttribute("data-decline"), "decline")));
+    trList.querySelectorAll("[data-cancel]").forEach(btn =>
+      btn.addEventListener("click", () => respondRequest(btn.getAttribute("data-cancel"), "cancel")));
+  }
+
+  function renderRequestRow(r, isHistory) {
+    const isIncoming = r.direction === "incoming";
+    const other = isIncoming ? r.fromUser : r.toUser;
+    const otherName = escapeHtml((other && other.name) || "Unknown");
+    const avatar = (other && other.avatar) || "https://randomuser.me/api/portraits/lego/1.jpg";
+    const msg = r.message ? escapeHtml(r.message) : "";
+    const team = r.teamName ? escapeHtml(r.teamName) : "";
+
+    let actions = "";
+    if (!isHistory) {
+      actions = isIncoming
+        ? `<span style="display:flex; gap:8px; margin-top:10px;">
+             <button data-accept="${escapeHtml(r._id)}" class="styled-btn" style="padding:7px 16px; font-size:12px; margin-top:0;">Accept</button>
+             <button data-decline="${escapeHtml(r._id)}" class="styled-btn" style="padding:7px 16px; font-size:12px; margin-top:0; background:rgba(220,53,69,0.25); border:1px solid rgba(220,53,69,0.6);">Decline</button>
+           </span>`
+        : `<button data-cancel="${escapeHtml(r._id)}" class="styled-btn" style="padding:7px 16px; font-size:12px; margin-top:10px; background:rgba(220,53,69,0.25); border:1px solid rgba(220,53,69,0.6);">Cancel Request</button>`;
+    } else {
+      const statusColors = { accepted: "#52e379", declined: "#ff8b8b", cancelled: "#aaa" };
+      actions = `<span style="font-size:11px; color:${statusColors[r.status] || "#aaa"}; font-weight:600;">${r.status === "accepted" ? "✅" : "✖"} ${escapeHtml(r.status)}${team ? ` • ${team}` : ""}</span>`;
+    }
+
+    return `
+      <div style="display:flex; align-items:center; gap:12px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); border-radius:12px; padding:12px 14px; margin-bottom:8px;">
+        <img src="${avatar}" alt="${otherName}" onerror="this.onerror=null;this.src='https://randomuser.me/api/portraits/lego/1.jpg';" style="width:38px; height:38px; border-radius:50%; object-fit:cover;" />
+        <div style="flex:1;">
+          <div style="font-size:13px; color:#fff; font-weight:600;">${otherName} <span style="font-weight:400; color:#bbb; font-size:11px;">• ${timeAgo(r.createdAt)}</span></div>
+          ${msg ? `<div style="font-size:12px; color:#ddd; margin-top:2px;">"${msg}"</div>` : ""}
+          ${actions}
+        </div>
+      </div>
+    `;
+  }
+
+  async function respondRequest(id, action) {
+    try {
+      const res = await fetch(`/api/team-requests/${id}/${action}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.message || `Failed to ${action} request`);
+      loadTeamRequests();
+      loadUserProfile();
+      fetchTeammates();
+    } catch (err) {
+      window.alert(err.message);
+    }
   }
 });

@@ -24,6 +24,8 @@ const userSchema = new mongoose.Schema({
   projects: [projectSchema],
   achievements: [achievementSchema],
   avatar: { type: String, default: "https://randomuser.me/api/portraits/lego/1.jpg" },
+  teamStatus: { type: String, enum: ["available", "booked"], default: "available" },
+  teamName: { type: String, default: "" },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 });

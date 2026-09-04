@@ -15,6 +15,7 @@ const mongoose = require("mongoose");
 const User = require("./models/User");
 const Teammate = require("./models/Teammate");
 const Session = require("./models/Session");
+const TeamRequest = require("./models/TeamRequest");
 
 // Parsing Utilities
 const {
@@ -82,6 +83,7 @@ const hashPassword = (password) => {
 };
 
 const inMemorySessions = {};
+const inMemoryTeamRequests = [];
 const inMemoryUsers = [
   {
     id: "usr-demo-1",
@@ -515,7 +517,9 @@ app.get("/api/search/teammates", async (req, res) => {
             githubLinks: t.githubLinks || [],
             projects: t.projects || [],
             achievements: t.achievements || [],
-            resumeUrl: t.resumeUrl || ""
+            resumeUrl: t.resumeUrl || "",
+            teamStatus: t.teamStatus || "available",
+            teamName: t.teamName || ""
           })),
           ...users.map(u => ({
             _id: u._id,
@@ -527,7 +531,9 @@ app.get("/api/search/teammates", async (req, res) => {
             avatar: u.avatar || "https://randomuser.me/api/portraits/lego/1.jpg",
             githubLinks: u.githubLinks || [],
             projects: u.projects || [],
-            achievements: u.achievements || []
+            achievements: u.achievements || [],
+            teamStatus: u.teamStatus || "available",
+            teamName: u.teamName || ""
           }))
         ];
 
@@ -550,7 +556,9 @@ app.get("/api/search/teammates", async (req, res) => {
         avatar: u.avatar || "https://randomuser.me/api/portraits/lego/1.jpg",
         githubLinks: u.githubLinks || [],
         projects: u.projects || [],
-        achievements: u.achievements || []
+        achievements: u.achievements || [],
+        teamStatus: u.teamStatus || "available",
+        teamName: u.teamName || ""
       }))
     ];
 
@@ -671,6 +679,264 @@ app.delete("/api/teammates/:id", authenticateUser, async (req, res) => {
     res.status(500).json({ success: false, message: "Error deleting teammate" });
   }
 });
+
+// -------------------------------------------------------------
+// Team Requests (send / receive / accept / decline / cancel)
+// -------------------------------------------------------------
+const imFindUser = (id) =>
+  inMemoryUsers.find((u) => u.id === id || u._id === id || String(u.id) === String(id) || String(u._id) === String(id));
+
+// Send a team request to another user
+app.post("/api/team-requests", authenticateUser, async (req, res) => {
+  try {
+    const { toUserId, message, teamName } = req.body;
+    const fromId = String(req.user._id || req.user.id);
+
+    if (!toUserId) {
+      return res.status(400).json({ success: false, message: "toUserId is required" });
+    }
+    if (String(fromId) === String(toUserId)) {
+      return res.status(400).json({ success: false, message: "You cannot send a team request to yourself" });
+    }
+
+    // 1. MongoDB Mode
+    if (mongoose.connection.readyState === 1) {
+      const target = await User.findById(toUserId);
+      if (!target) {
+        return res.status(404).json({ success: false, message: "Target user not found" });
+      }
+      const existing = await TeamRequest.findOne({
+        status: "pending",
+        $or: [
+          { fromUserId: fromId, toUserId },
+          { fromUserId: toUserId, toUserId: fromId }
+        ]
+      });
+      if (existing) {
+        return res.status(409).json({ success: false, message: "A pending request already exists between you two" });
+      }
+      if (target.teamStatus === "booked") {
+        return res.status(409).json({ success: false, message: `${target.fullName} is already booked in a team` });
+      }
+      const created = await TeamRequest.create({
+        fromUserId: fromId,
+        toUserId,
+        message: (message || "").slice(0, 300),
+        teamName: teamName || ""
+      });
+      return res.status(201).json({ success: true, message: "Team request sent", request: created });
+    }
+
+    // 2. In-Memory Mode
+    const target = imFindUser(toUserId);
+    if (!target) {
+      return res.status(404).json({ success: false, message: "Target user not found" });
+    }
+    const existing = inMemoryTeamRequests.find(
+      r => r.status === "pending" &&
+        ((r.fromUserId === fromId && r.toUserId === toUserId) ||
+         (r.fromUserId === toUserId && r.toUserId === fromId))
+    );
+    if (existing) {
+      return res.status(409).json({ success: false, message: "A pending request already exists between you two" });
+    }
+    if (target.teamStatus === "booked") {
+      return res.status(409).json({ success: false, message: `${target.fullName} is already booked in a team` });
+    }
+
+    const newRequest = {
+      _id: `req-${Date.now()}`,
+      fromUserId: fromId,
+      toUserId,
+      message: (message || "").slice(0, 300),
+      teamName: teamName || "",
+      status: "pending",
+      createdAt: new Date().toISOString(),
+      respondedAt: null
+    };
+    inMemoryTeamRequests.push(newRequest);
+    res.status(201).json({ success: true, message: "Team request sent", request: newRequest });
+  } catch (error) {
+    console.error("Send team request error:", error);
+    res.status(500).json({ success: false, message: "Error sending team request" });
+  }
+});
+
+// List my team requests (?box=in|out|all)
+app.get("/api/team-requests", authenticateUser, async (req, res) => {
+  try {
+    const box = req.query.box || "all";
+    const uid = String(req.user._id || req.user.id);
+    const populateUser = (u) => u
+      ? { _id: u._id || u.id, name: u.fullName || u.name || "User", avatar: u.avatar || "https://randomuser.me/api/portraits/lego/1.jpg", teamStatus: u.teamStatus || "available", teamName: u.teamName || "" }
+      : { _id: null, name: "Unknown User", avatar: null, teamStatus: "available", teamName: "" };
+
+    // 1. MongoDB Mode
+    if (mongoose.connection.readyState === 1) {
+      const filter = box === "in"
+        ? { toUserId: uid }
+        : box === "out"
+          ? { fromUserId: uid }
+          : { $or: [{ fromUserId: uid }, { toUserId: uid }] };
+
+      const requests = await TeamRequest.find(filter).sort({ createdAt: -1 }).lean();
+      const userIds = [...new Set(requests.flatMap(r => [String(r.fromUserId), String(r.toUserId)]))];
+      const users = await User.find({ _id: { $in: userIds } }).select("fullName avatar teamStatus teamName").lean();
+      const userMap = Object.fromEntries(users.map(u => [String(u._id), populateUser(u)]));
+
+      const enriched = requests.map(r => ({
+        ...r,
+        fromUser: userMap[String(r.fromUserId)] || populateUser(null),
+        toUser: userMap[String(r.toUserId)] || populateUser(null),
+        direction: String(r.fromUserId) === uid ? "outgoing" : "incoming"
+      }));
+      return res.json({ success: true, requests: enriched });
+    }
+
+    // 2. In-Memory Mode
+    let list = inMemoryTeamRequests.filter(r => r.fromUserId === uid || r.toUserId === uid);
+    if (box === "in") list = list.filter(r => r.toUserId === uid);
+    if (box === "out") list = list.filter(r => r.fromUserId === uid);
+    list = [...list].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    const enriched = list.map(r => ({
+      ...r,
+      fromUser: populateUser(imFindUser(r.fromUserId)),
+      toUser: populateUser(imFindUser(r.toUserId)),
+      direction: r.fromUserId === uid ? "outgoing" : "incoming"
+    }));
+    res.json({ success: true, requests: enriched });
+  } catch (error) {
+    console.error("List team requests error:", error);
+    res.status(500).json({ success: false, message: "Error loading team requests" });
+  }
+});
+
+// Respond to a team request (accept | decline | cancel)
+async function respondToTeamRequest(req, res, action) {
+  try {
+    const { id } = req.params;
+    const uid = String(req.user._id || req.user.id);
+
+    // 1. MongoDB Mode
+    if (mongoose.connection.readyState === 1) {
+      const request = await TeamRequest.findById(id);
+      if (!request) {
+        return res.status(404).json({ success: false, message: "Team request not found" });
+      }
+      const isRecipient = String(request.toUserId) === uid;
+      const isSender = String(request.fromUserId) === uid;
+      if (action === "cancel" ? !isSender : !isRecipient) {
+        return res.status(403).json({
+          success: false,
+          message: action === "cancel" ? "Only the sender can cancel this request" : "Only the recipient can respond to this request"
+        });
+      }
+      if (request.status !== "pending") {
+        return res.status(409).json({ success: false, message: `Request already ${request.status}` });
+      }
+
+      if (action === "accept") {
+        const [fromUser, toUser] = await Promise.all([
+          User.findById(request.fromUserId),
+          User.findById(request.toUserId)
+        ]);
+        const teamName = request.teamName || `${(fromUser?.fullName || "Someone").split(" ")[0]}'s Team`;
+
+        await User.updateMany(
+          { _id: { $in: [request.fromUserId, request.toUserId] } },
+          { $set: { teamStatus: "booked", teamName, updatedAt: new Date() } }
+        );
+
+        // Auto-decline all other pending requests involving either member
+        await TeamRequest.updateMany(
+          {
+            _id: { $ne: request._id },
+            status: "pending",
+            $or: [
+              { fromUserId: { $in: [request.fromUserId, request.toUserId] } },
+              { toUserId: { $in: [request.fromUserId, request.toUserId] } }
+            ]
+          },
+          { $set: { status: "declined", respondedAt: new Date() } }
+        );
+
+        request.status = "accepted";
+        request.teamName = teamName;
+        request.respondedAt = new Date();
+        await request.save();
+
+        const updatedMe = await User.findById(uid).select("-password").lean();
+        return res.json({ success: true, message: `Request accepted — you are now in "${teamName}"`, teamName, user: updatedMe });
+      }
+
+      request.status = action === "cancel" ? "cancelled" : "declined";
+      request.respondedAt = new Date();
+      await request.save();
+      return res.json({ success: true, message: action === "cancel" ? "Request cancelled" : "Request declined" });
+    }
+
+    // 2. In-Memory Mode
+    const request = inMemoryTeamRequests.find(r => r._id === id);
+    if (!request) {
+      return res.status(404).json({ success: false, message: "Team request not found" });
+    }
+    const isRecipient = String(request.toUserId) === uid;
+    const isSender = String(request.fromUserId) === uid;
+    if (action === "cancel" ? !isSender : !isRecipient) {
+      return res.status(403).json({
+        success: false,
+        message: action === "cancel" ? "Only the sender can cancel this request" : "Only the recipient can respond to this request"
+      });
+    }
+    if (request.status !== "pending") {
+      return res.status(409).json({ success: false, message: `Request already ${request.status}` });
+    }
+
+    if (action === "accept") {
+      const fromUser = imFindUser(request.fromUserId);
+      const teamName = request.teamName || `${(fromUser?.fullName || "Someone").split(" ")[0]}'s Team`;
+
+      [request.fromUserId, request.toUserId].forEach(memberId => {
+        const member = imFindUser(memberId);
+        if (member) {
+          member.teamStatus = "booked";
+          member.teamName = teamName;
+        }
+      });
+
+      // Auto-decline all other pending requests involving either member
+      inMemoryTeamRequests.forEach(r => {
+        if (r._id !== request._id && r.status === "pending") {
+          const involved = [r.fromUserId, r.toUserId].some(x => x === request.fromUserId || x === request.toUserId);
+          if (involved) {
+            r.status = "declined";
+            r.respondedAt = new Date().toISOString();
+          }
+        }
+      });
+
+      request.status = "accepted";
+      request.teamName = teamName;
+      request.respondedAt = new Date().toISOString();
+
+      const me = imFindUser(uid);
+      const { password: _pw, ...meSafe } = me || {};
+      return res.json({ success: true, message: `Request accepted — you are now in "${teamName}"`, teamName, user: meSafe });
+    }
+
+    request.status = action === "cancel" ? "cancelled" : "declined";
+    request.respondedAt = new Date().toISOString();
+    res.json({ success: true, message: action === "cancel" ? "Request cancelled" : "Request declined" });
+  } catch (error) {
+    console.error(`Team request ${action} error:`, error);
+    res.status(500).json({ success: false, message: "Error processing request" });
+  }
+}
+
+app.post("/api/team-requests/:id/accept", authenticateUser, (req, res) => respondToTeamRequest(req, res, "accept"));
+app.post("/api/team-requests/:id/decline", authenticateUser, (req, res) => respondToTeamRequest(req, res, "decline"));
+app.post("/api/team-requests/:id/cancel", authenticateUser, (req, res) => respondToTeamRequest(req, res, "cancel"));
 
 // Database status (diagnostic endpoint)
 app.get("/api/db-status", authenticateUser, async (req, res) => {

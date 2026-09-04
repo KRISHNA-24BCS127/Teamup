@@ -637,6 +637,39 @@
     color: #999;
     font-style: italic;
   }
+
+  /* ============================================
+     CREAM THEME (black → cream, top to bottom)
+     ============================================ */
+  body {
+    background: linear-gradient(180deg, #0b0b0f 0%, #1a1721 35%, #3a3344 68%, #f5ecd7 100%) !important;
+    background-attachment: fixed;
+  }
+  .dashboard-container {
+    background: linear-gradient(180deg, rgba(20, 18, 26, 0.92) 0%, rgba(58, 51, 68, 0.88) 55%, rgba(245, 236, 215, 0.92) 100%) !important;
+  }
+  .navbar {
+    background: linear-gradient(90deg, #1d1a26 0%, #4a4258 100%) !important;
+  }
+  .site-name { color: #f5ecd7 !important; }
+  .navbar-right a { color: #f5ecd7 !important; }
+  .navbar-right a:hover { background: rgba(245, 236, 215, 0.18) !important; color: #ffffff !important; }
+  .navbar-right a.logout-nav-btn {
+    background: linear-gradient(90deg, #4a4258 0%, #6b5f7d 100%) !important;
+    color: #f5ecd7 !important;
+  }
+  .navbar-right a.logout-nav-btn:hover { background: linear-gradient(90deg, #5d5370 0%, #7d7192 100%) !important; }
+  .search-container {
+    background: linear-gradient(180deg, rgba(24, 21, 31, 0.85) 0%, rgba(74, 66, 88, 0.75) 100%) !important;
+  }
+  .search-results {
+    background: linear-gradient(180deg, rgba(24, 21, 31, 0.85) 0%, rgba(245, 236, 215, 0.55) 160%) !important;
+  }
+  .tr-section {
+    background: linear-gradient(180deg, rgba(24, 21, 31, 0.85) 0%, rgba(74, 66, 88, 0.75) 100%) !important;
+    border: 1px solid rgba(245, 236, 215, 0.25);
+  }
+  #profile { background: rgba(0, 0, 0, 0.25) !important; }
   </style>
 </head>
 <body>
@@ -685,6 +718,13 @@
       <div id="teammates" class="card-container"></div>
       <div id="pagination" class="pagination"></div>
     </div>
+
+    <div id="teamRequests" class="search-results tr-section" style="margin-top:30px;">
+      <h3 style="display:flex; align-items:center; gap:10px;">🤝 Team Requests
+        <span id="trCountBadge" style="display:none; background:#e04a5f; color:#fff; border-radius:12px; padding:1px 9px; font-size:12px; font-weight:700;">0</span>
+      </h3>
+      <div id="teamRequestsList"></div>
+    </div>
   </div>
   <!-- Modal for displaying connection information -->
   <div id="connectionModal" class="modal">
@@ -697,6 +737,23 @@
         <p><strong>Contact Number:</strong> <span id="connectionPhone"></span></p>
       </div>      
       <button class="close-modal" onclick="closeModal()">Close</button>
+    </div>
+  </div>
+
+  <!-- Modal for sending a team request -->
+  <div id="requestModal" class="modal">
+    <div class="modal-content">
+      <h3>Send Team Request</h3>
+      <p>Invite <span id="requestTargetName" style="font-weight:700;"></span> to join your team</p>
+      <form onsubmit="submitTeamRequest(event)" style="margin-top:10px;">
+        <input type="hidden" id="requestTargetId" value="" />
+        <textarea id="requestMessage" rows="3" placeholder="Optional message (e.g., 'Let's build the hackathon project together!')" style="width:100%; padding:10px 12px; border-radius:10px; border:none; background:rgba(255,255,255,0.18); color:#fff; font-size:13px; outline:none; resize:vertical; font-family:'Poppins',sans-serif;"></textarea>
+        <p id="requestError" style="color:#ff8b8b; font-size:12px; margin:6px 0 0;"></p>
+        <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:12px;">
+          <button type="button" class="close-modal" onclick="closeRequestModal()">Cancel</button>
+          <button type="submit" class="styled-btn" style="margin-top:0;">Send Request</button>
+        </div>
+      </form>
     </div>
   </div>
   
