@@ -234,7 +234,7 @@ document.addEventListener("DOMContentLoaded", () => {
           ${projectsHtml}
         </div>
 
-        <button onclick="window.showConnectModal('${escapeJsString(t.name || "Teammate")}', '${cleanId}')" class="styled-btn" style="width:100%; padding:10px 0; margin-top:5px; font-size:13px;">
+        <button onclick="window.showConnectModal('${escapeJsString(t.name || "Teammate")}', '${cleanId}', '${escapeJsString(t.resumeUrl || "")}')" class="styled-btn" style="width:100%; padding:10px 0; margin-top:5px; font-size:13px;">
           🤝 Connect with ${name.split(" ")[0]}
         </button>
       </div>
@@ -313,15 +313,29 @@ document.addEventListener("DOMContentLoaded", () => {
   // -----------------------------------------------------------
   // Global Modal & Helpers
   // -----------------------------------------------------------
-  window.showConnectModal = function(name, id) {
+  window.showConnectModal = function(name, id, resumeUrl) {
     const modalEl = document.getElementById("connectionModal");
     const nameEl = document.getElementById("connectionName");
     const idEl = document.getElementById("connectionId");
     const phoneEl = document.getElementById("connectionPhone");
+    const resumeContainer = document.getElementById("resumeButtonContainer");
 
     if (nameEl) nameEl.textContent = name;
     if (idEl) idEl.textContent = id;
     if (phoneEl) phoneEl.textContent = "Available after mutual accept";
+
+    // Resume button — show only when the teammate actually has a resume link,
+    // otherwise hide it instead of pointing everyone to a shared placeholder.
+    if (resumeContainer) {
+      if (resumeUrl && String(resumeUrl).trim()) {
+        resumeContainer.innerHTML = `<button class="login-btn">
+          <a href="${escapeHtml(String(resumeUrl))}" target="_blank" rel="noopener noreferrer" style="text-decoration: none; color: papayawhip;">Resume</a>
+        </button>`;
+      } else {
+        resumeContainer.innerHTML = "";
+      }
+    }
+
     if (modalEl) modalEl.style.display = "flex";
   };
 

@@ -18,7 +18,10 @@ const initialTeammates = [
     ],
     achievements: [
       { title: "Hackathon Finalist 2025", type: "Hackathon" }
-    ]
+    ],
+    // 📄 Paste this teammate's real resume (Google Drive / PDF) link here.
+    // Leave "" empty when there is no resume — the Resume button will be hidden.
+    resumeUrl: ""
   },
   {
     name: "Krishna Rai",
@@ -38,13 +41,14 @@ const initialTeammates = [
     achievements: [
       { title: "Smart India Hackathon Participant", type: "Hackathon" },
       { title: "Top 5% in Competitive Coding", type: "Ranking" }
-    ]
+    ],
+    resumeUrl: ""
   },
   {
     name: "Kushagra Gupta",
-    skills: ["Python", "Machine Learning", "AI", "C++", "Java", "Game Dev"],
+    skills: ["C++", "Java", "Algorithms", "Data Structures", "Game Dev", "Systems"],
     availability: "Now",
-    bio: "Systems and AI developer with strong foundation in core algorithms and interactive systems.",
+    bio: "Systems developer with a strong foundation in core algorithms, C++/Java, and interactive systems.",
     avatar: "https://randomuser.me/api/portraits/men/86.jpg",
     githubLinks: ["https://github.com/Kushagra-Gupta"],
     projects: [
@@ -57,83 +61,8 @@ const initialTeammates = [
     ],
     achievements: [
       { title: "Code Rumble 3.0 Winner", type: "Award" }
-    ]
-  },
-  {
-    name: "Sarah Johnson",
-    skills: ["JavaScript", "React", "TypeScript", "Node.js", "Tailwind CSS"],
-    availability: "Later Today",
-    bio: "Frontend specialist focused on responsive UX, component design systems, and web performance.",
-    avatar: "https://randomuser.me/api/portraits/women/44.jpg",
-    githubLinks: ["https://github.com/sarah-j-dev"],
-    projects: [
-      {
-        name: "DevHub Dashboard",
-        description: "Modern real-time collaboration dashboard for developer communities.",
-        technologies: ["React", "TypeScript", "Tailwind CSS"],
-        githubUrl: "https://github.com/sarah-j-dev/devhub"
-      }
     ],
-    achievements: [
-      { title: "React Certified Professional", type: "Certification" }
-    ]
-  },
-  {
-    name: "Michael Chen",
-    skills: ["Python", "Django", "AWS", "Docker", "Machine Learning"],
-    availability: "This Weekend",
-    bio: "Backend architect specializing in cloud infrastructure, containerization, and automated CI/CD pipelines.",
-    avatar: "https://randomuser.me/api/portraits/men/62.jpg",
-    githubLinks: ["https://github.com/mchen-cloud"],
-    projects: [
-      {
-        name: "CloudScale ML",
-        description: "Distributed model training pipeline deployed on AWS ECS with auto-scaling.",
-        technologies: ["Python", "AWS", "Docker"],
-        githubUrl: "https://github.com/mchen-cloud/cloudscale"
-      }
-    ],
-    achievements: [
-      { title: "AWS Certified Solutions Architect", type: "Certification" }
-    ]
-  },
-  {
-    name: "Emily Rodriguez",
-    skills: ["UI/UX Design", "Figma", "Design Systems", "HTML", "CSS"],
-    availability: "Next Week",
-    bio: "Product designer passionate about intuitive user flows, accessible design, and wireframing.",
-    avatar: "https://randomuser.me/api/portraits/women/68.jpg",
-    githubLinks: ["https://github.com/emily-designs"],
-    projects: [
-      {
-        name: "FinTech Mobile UI Kit",
-        description: "Comprehensive open-source design system with 100+ accessible UI components in Figma.",
-        technologies: ["Figma", "UI/UX", "Design"],
-        githubUrl: "https://github.com/emily-designs/uikit"
-      }
-    ],
-    achievements: [
-      { title: "Best Design Award - UI Hack 2024", type: "Award" }
-    ]
-  },
-  {
-    name: "Raj Sharma",
-    skills: ["Flutter", "Firebase", "Mobile Dev", "Dart", "Android"],
-    availability: "Now",
-    bio: "Mobile engineer building cross-platform applications with seamless offline sync.",
-    avatar: "https://randomuser.me/api/portraits/men/77.jpg",
-    githubLinks: ["https://github.com/raj-flutter"],
-    projects: [
-      {
-        name: "CampusConnect App",
-        description: "Cross-platform student communication network with push notifications and live chat.",
-        technologies: ["Flutter", "Firebase", "Dart"],
-        githubUrl: "https://github.com/raj-flutter/campus"
-      }
-    ],
-    achievements: [
-      { title: "Google Developers Student Club Lead", type: "Award" }
-    ]
+    resumeUrl: ""
   }
 ];
 

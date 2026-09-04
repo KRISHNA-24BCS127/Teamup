@@ -1,7 +1,7 @@
 ﻿{
   "name": "teamup",
   "version": "1.0.0",
-  "description": "Teamup — a full-stack platform for discovering project teammates with resume-based skill extraction, GitHub profile parsing, and smart filtering",
+  "description": "Teamup — an open, AGPL-licensed full-stack platform for discovering project teammates with resume-based skill extraction, GitHub profile parsing, and smart filtering",
   "main": "server.js",
   "engines": {
     "node": ">=18.0.0"
@@ -24,7 +24,7 @@
     "rest-api"
   ],
   "author": "Basant Gautam, Krishna Rai, Kushagra",
-  "license": "MIT",
+  "license": "AGPL-3.0",
   "bugs": {
     "url": "https://github.com/KRISHNA-24BCS127/Teamup/issues"
   },

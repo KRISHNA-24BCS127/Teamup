@@ -454,7 +454,8 @@ app.get("/api/search/teammates", async (req, res) => {
             avatar: t.avatar || "https://randomuser.me/api/portraits/lego/1.jpg",
             githubLinks: t.githubLinks || [],
             projects: t.projects || [],
-            achievements: t.achievements || []
+            achievements: t.achievements || [],
+            resumeUrl: t.resumeUrl || ""
           })),
           ...users.map(u => ({
             _id: u._id,
