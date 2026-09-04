@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Teamup — Find Your Perfect Project Teammates</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Segoe UI', Arial, sans-serif; background:#0d1117; color:#e6edf3; line-height:1.6; }
+  a { color:#58a6ff; }
+  .hero { min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:2rem; background:linear-gradient(135deg,#0d1117 0%,#161b3a 60%,#1f2a5e 100%); }
+  .hero h1 { font-size:3.2rem; margin-bottom:0.5rem; }
+  .hero h1 span { color:#58a6ff; }
+  .tagline { font-size:1.3rem; color:#8b949e; max-width:640px; margin-bottom:2rem; }
+  .badges { display:flex; gap:0.6rem; flex-wrap:wrap; justify-content:center; margin-bottom:2.5rem; }
+  .badge { background:#21262d; border:1px solid #30363d; border-radius:20px; padding:0.35rem 1rem; font-size:0.9rem; }
+  .btn { display:inline-block; background:#238636; color:#fff; padding:0.9rem 2rem; border-radius:8px; text-decoration:none; font-weight:600; font-size:1.05rem; transition:background .2s; }
+  .btn:hover { background:#2ea043; }
+  .btn.secondary { background:transparent; border:1px solid #30363d; margin-left:0.8rem; margin-top:0.8rem; }
+  .btn.secondary:hover { border-color:#58a6ff; color:#58a6ff; }
+  section { max-width:900px; margin:0 auto; padding:3rem 1.5rem; }
+  h2 { font-size:2rem; margin-bottom:1.5rem; color:#58a6ff; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:1.2rem; }
+  .card { background:#161b22; border:1px solid #30363d; border-radius:12px; padding:1.5rem; }
+  .card h3 { margin-bottom:0.5rem; }
+  .card p { color:#8b949e; font-size:0.95rem; }
+  .team-card { text-align:center; }
+  .team-card .avatar { width:64px; height:64px; border-radius:50%; margin:0 auto 0.8rem; background:#21262d; display:flex; align-items:center; justify-content:center; font-size:1.6rem; font-weight:700; color:#58a6ff; }
+  .team-card a { text-decoration:none; }
+  .note { text-align:center; color:#8b949e; font-size:0.9rem; padding:2rem; border-top:1px solid #21262d; max-width:900px; margin:0 auto; }
+  footer { text-align:center; padding:2rem; color:#8b949e; font-size:0.9rem; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>Team<span>up</span> 🤝</h1>
+  <p class="tagline">A hackathon-built platform that helps students and developers find the right teammates for their projects — based on skills, interests and goals.</p>
+  <div class="badges">
+    <span class="badge">HTML/CSS/JS</span>
+    <span class="badge">Node.js + Express</span>
+    <span class="badge">MongoDB</span>
+    <span class="badge">Team of 3</span>
+  </div>
+  <div>
+    <a class="btn" href="https://github.com/KRISHNA-24BCS127/Teamup">View Source on GitHub</a>
+    <a class="btn secondary" href="https://github.com/KRISHNA-24BCS127/Teamup#readme">Documentation</a>
+  </div>
+</div>
+
+<section>
+  <h2>✨ Features</h2>
+  <div class="grid">
+    <div class="card"><h3>🔐 Authentication</h3><p>Signup, login and logout with profile management for every user.</p></div>
+    <div class="card"><h3>🔍 Teammate Discovery</h3><p>Search and filter potential teammates by skills, so you always find the right fit.</p></div>
+    <div class="card"><h3>📄 Resume Parsing</h3><p>Upload your resume (PDF/DOCX) and let Teamup extract your skills automatically.</p></div>
+    <div class="card"><h3>🐙 GitHub Integration</h3><p>Link your GitHub profile to showcase real projects to potential teammates.</p></div>
+  </div>
+</section>
+
+<section>
+  <h2>👥 Built By</h2>
+  <div class="grid">
+    <div class="card team-card"><div class="avatar">G</div><h3>Basant Gautam</h3><p><a href="https://github.com/basant-gautam">@basant-gautam</a></p></div>
+    <div class="card team-card"><div class="avatar">K</div><h3>Krishna Rai</h3><p><a href="https://github.com/KRISHNA-24BCS127">@KRISHNA-24BCS127</a></p></div>
+    <div class="card team-card"><div class="avatar">K</div><h3>Kushagra</h3><p>Team Member</p></div>
+  </div>
+</section>
+
+<p class="note">⚠️ This is a static preview page. The full application (Node.js + MongoDB backend) runs locally — see the <a href="https://github.com/KRISHNA-24BCS127/Teamup#readme">README</a> for setup instructions.</p>
+
+<footer>Made with ❤️ by the Teamup team for a hackathon · <a href="https://github.com/KRISHNA-24BCS127/Teamup">GitHub</a></footer>
+
+</body>
+</html>
