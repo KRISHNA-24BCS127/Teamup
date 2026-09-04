@@ -435,6 +435,36 @@ app.put("/api/profile", authenticateUser, async (req, res) => {
   }
 });
 
+// Delete Account (permanent — removes the user and all their sessions)
+app.delete("/api/profile", authenticateUser, async (req, res) => {
+  try {
+    const userId = req.user._id || req.user.id;
+
+    // 1. MongoDB Mode
+    if (mongoose.connection.readyState === 1) {
+      await Session.deleteMany({ userId });
+      await User.findByIdAndDelete(userId);
+      return res.json({ success: true, message: "Account deleted successfully" });
+    }
+
+    // 2. In-Memory Mode
+    const idx = inMemoryUsers.findIndex(u => u.id === userId || u._id === userId);
+    if (idx !== -1) {
+      inMemoryUsers.splice(idx, 1);
+    }
+    Object.keys(inMemorySessions).forEach((t) => {
+      if (inMemorySessions[t].userId === userId) {
+        delete inMemorySessions[t];
+      }
+    });
+
+    res.json({ success: true, message: "Account deleted successfully" });
+  } catch (error) {
+    console.error("Delete account error:", error);
+    res.status(500).json({ success: false, message: "Error deleting account" });
+  }
+});
+
 // Logout
 app.post("/api/logout", authenticateUser, async (req, res) => {
   try {
@@ -607,6 +637,38 @@ app.get("/api/teammates", async (req, res) => {
   } catch (error) {
     console.error("Teammates error:", error);
     res.status(500).json({ success: false, message: "Error fetching teammates" });
+  }
+});
+
+// Delete a Teammate entry (moderation / cleanup)
+app.delete("/api/teammates/:id", authenticateUser, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // 1. MongoDB Mode
+    if (mongoose.connection.readyState === 1) {
+      try {
+        const deleted = await Teammate.findByIdAndDelete(id);
+        if (!deleted) {
+          return res.status(404).json({ success: false, message: "Teammate not found" });
+        }
+        return res.json({ success: true, message: "Teammate deleted successfully" });
+      } catch (mongoErr) {
+        console.warn("MongoDB teammate delete error, falling back to memory:", mongoErr.message);
+      }
+    }
+
+    // 2. In-Memory Mode
+    const idx = inMemoryTeammates.findIndex(t => t.id === id || t._id === id);
+    if (idx === -1) {
+      return res.status(404).json({ success: false, message: "Teammate not found" });
+    }
+    inMemoryTeammates.splice(idx, 1);
+
+    res.json({ success: true, message: "Teammate deleted successfully" });
+  } catch (error) {
+    console.error("Delete teammate error:", error);
+    res.status(500).json({ success: false, message: "Error deleting teammate" });
   }
 });
 

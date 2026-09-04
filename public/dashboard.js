@@ -83,13 +83,21 @@ document.addEventListener("DOMContentLoaded", () => {
             <p style="color:#eee; font-size:0.95rem; margin-bottom:10px;">${escapeHtml(u.bio || "No bio provided yet.")}</p>
             <div><strong>Skills:</strong> ${skillsBadgeHtml || "<em>None added</em>"}</div>
           </div>
-          <button id="profileLogoutBtn" class="logout-btn" style="cursor:pointer;">Logout</button>
+          <div style="display:flex; gap:10px;">
+            <button id="profileLogoutBtn" class="logout-btn" style="cursor:pointer;">Logout</button>
+            <button id="deleteAccountBtn" class="logout-btn" style="cursor:pointer; background:rgba(220,53,69,0.25); border:1px solid rgba(220,53,69,0.6); color:#ff8b8b;">Delete Account</button>
+          </div>
         </div>
       `;
 
       const profileLogoutBtn = document.getElementById("profileLogoutBtn");
       if (profileLogoutBtn) {
         profileLogoutBtn.addEventListener("click", handleLogout);
+      }
+
+      const deleteAccountBtn = document.getElementById("deleteAccountBtn");
+      if (deleteAccountBtn) {
+        deleteAccountBtn.addEventListener("click", handleDeleteAccount);
       }
     } catch (err) {
       console.error("Profile load error:", err);
@@ -111,6 +119,32 @@ document.addEventListener("DOMContentLoaded", () => {
     } finally {
       localStorage.removeItem("authToken");
       window.location.href = "login.html";
+    }
+  }
+
+  // -----------------------------------------------------------
+  // Delete Account Handler
+  // -----------------------------------------------------------
+  async function handleDeleteAccount() {
+    const confirmed = window.confirm(
+      "Are you sure you want to permanently delete your account? This cannot be undone."
+    );
+    if (!confirmed) return;
+
+    try {
+      const res = await fetch("/api/profile", {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (!data.success) {
+        throw new Error(data.message || "Failed to delete account");
+      }
+      localStorage.removeItem("authToken");
+      window.location.href = "signup.html";
+    } catch (err) {
+      console.error("Delete account error:", err);
+      window.alert("Error deleting account: " + err.message);
     }
   }
 

@@ -112,6 +112,8 @@ Base URL: `http://localhost:5000`
 | `PUT` | `/api/profile` | Update the current user's profile | ✅ |
 | `GET` | `/api/search/teammates` | Search teammates by skill & availability | ✅ |
 | `GET` | `/api/teammates` | Paginated teammate list | ✅ |
+| `DELETE` | `/api/profile` | Permanently delete the current user's account | ✅ |
+| `DELETE` | `/api/teammates/:id` | Delete a teammate entry | ✅ |
 
 **Example — search for ML developers:**
 
