@@ -15,6 +15,10 @@ pids
 *.seed
 *.pid.lock
 
+# Uploaded user files
+uploads/*
+!uploads/.gitkeep
+
 # IDE files
 .vscode/
 .idea/

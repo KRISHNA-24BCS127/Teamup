@@ -700,65 +700,6 @@
     </div>
   </div>
   
-  <script src="script.js"></script>
-  <script src="image-fix.js"></script>
-  <script src="skill-search-new.js"></script>
-  
-  <script>
-    // Function to show the connection modal
-    function showConnectionModal(name, id, phone) {
-      document.getElementById('connectionName').textContent = name;
-      document.getElementById('connectionId').textContent = id;
-      document.getElementById('connectionPhone').textContent = phone;
-      document.getElementById('connectionModal').style.display = 'flex';
-    }
-    
-    // Function to close the modal
-    function closeModal() {
-      document.getElementById('connectionModal').style.display = 'none';
-    }
-    
-    // Close modal when clicking outside of it
-    window.onclick = function(event) {
-      const modal = document.getElementById('connectionModal');
-      if (event.target == modal) {
-        modal.style.display = 'none';
-      }
-    }
-    
-    // Fix for skills dropdown overlapping with availability select
-    document.addEventListener('DOMContentLoaded', function() {
-      const skillSearch = document.getElementById('skillSearch');
-      
-      // Create a container for skill suggestions if one doesn't exist
-      let skillSuggestions = document.getElementById('skill-suggestions');
-      if (!skillSuggestions) {
-        skillSuggestions = document.createElement('div');
-        skillSuggestions.id = 'skill-suggestions';
-        skillSuggestions.style.position = 'absolute';
-        skillSuggestions.style.width = '100%';
-        skillSuggestions.style.background = 'rgba(60, 60, 80, 0.95)';
-        skillSuggestions.style.borderRadius = '10px';
-        skillSuggestions.style.zIndex = '10';
-        skillSuggestions.style.maxHeight = '150px';
-        skillSuggestions.style.overflowY = 'auto';
-        skillSuggestions.style.display = 'none';
-        skillSuggestions.style.marginTop = '5px';
-        skillSuggestions.style.boxShadow = '0 5px 15px rgba(0, 0, 0, 0.3)';
-        skillSuggestions.style.backdropFilter = 'blur(10px)';
-        
-        // Append to the skill search form group
-        skillSearch.parentElement.appendChild(skillSuggestions);
-      }
-      
-      // Ensure proper positioning and z-indexing for dropdowns
-      if (skillSearch) {
-        const formGroup = skillSearch.closest('.form-group');
-        if (formGroup) {
-          formGroup.style.marginBottom = '40px'; // Add extra margin to prevent overlap
-        }
-      }
-    });
-  </script>
+  <script src="dashboard.js"></script>
 </body>
 </html>

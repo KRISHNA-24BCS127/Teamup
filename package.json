@@ -1,9 +1,19 @@
-{
+﻿{
   "name": "teamup",
   "version": "1.0.0",
   "description": "Teamup — a full-stack platform for discovering project teammates with resume-based skill extraction, GitHub profile parsing, and smart filtering",
+  "main": "server.js",
   "engines": {
     "node": ">=18.0.0"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "seed": "node scripts/seed.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KRISHNA-24BCS127/Teamup.git"
   },
   "keywords": [
     "express",
@@ -13,19 +23,8 @@
     "nodejs",
     "rest-api"
   ],
-  "main": "server.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js",
-    "dev": "nodemon server.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/KRISHNA-24BCS127/Teamup.git"
-  },
-  "keywords": [],
-  "author": "Basant Gautam, Krishna Rai, Kushagra (Teamup hackathon team)",
-  "license": "ISC",
+  "author": "Basant Gautam, Krishna Rai, Kushagra",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/KRISHNA-24BCS127/Teamup/issues"
   },
@@ -40,7 +39,6 @@
     "multer": "^2.0.2",
     "pdf-parse": "^1.1.1"
   },
-  "description": "",
   "devDependencies": {
     "nodemon": "^3.1.10"
   }
