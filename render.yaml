@@ -1,0 +1,26 @@
+# Blueprint for deploying Teamup on Render.
+# Docs: https://render.com/docs/yaml-spec
+# Usage: connect your GitHub repo on Render and select "Blueprint" (render.yaml).
+# IMPORTANT: set REAL values for MONGODB_URI and CORS_ORIGIN in the Render
+# dashboard AFTER creating the service — never commit real secrets to git.
+
+services:
+  - type: web
+    name: teamup
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      # Filled in the Render dashboard (secret): mongodb+srv://<user>:<pass>@cluster...
+      - key: MONGODB_URI
+        sync: false
+      # Comma-separated allowed origins, e.g. https://teamup.onrender.com
+      - key: CORS_ORIGIN
+        sync: false
