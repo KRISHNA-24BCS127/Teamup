@@ -47,8 +47,8 @@
 
 1. Clone the repository
 ```bash
-git clone https://github.com/basant-gautam/quick-teams-frontend.git
-cd quick-teams-frontend
+git clone https://github.com/KRISHNA-24BCS127/Teamup.git
+cd Teamup
 ```
 
 2. Install dependencies

@@ -1372,35 +1372,8 @@ app.get('/api/db-status', authenticateUser, async (req, res) => {
   }
 });
 
-// Debug route to see all users and teammates
-app.get("/api/debug/all-data", async (req, res) => {
-  try {
-    if (mongoose.connection.readyState === 1) {
-      const users = await User.find({}).select('-password');
-      const teammates = await Teammate.find({});
-      
-      res.json({
-        success: true,
-        users: users,
-        teammates: teammates,
-        userCount: users.length,
-        teammateCount: teammates.length
-      });
-    } else {
-      res.json({
-        success: false,
-        message: "MongoDB not connected",
-        inMemoryTeammates: inMemoryTeammates
-      });
-    }
-  } catch (error) {
-    console.error('Debug route error:', error);
-    res.status(500).json({
-      success: false,
-      error: error.message
-    });
-  }
-});
+// Debug route to see all users and teammates (removed for security —
+// it publicly exposed all user data. Use /api/db-status for a safe summary.)
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -1446,47 +1419,6 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/quick-tea
   }
   
   startServer();
-});
-
-// API endpoint to view MongoDB data (for debugging)
-app.get('/api/db-status', async (req, res) => {
-  try {
-    // Check MongoDB connection
-    const dbStatus = {
-      mongoConnected: mongoose.connection.readyState === 1,
-      collections: {}
-    };
-    
-    // Only proceed if connected to MongoDB
-    if (dbStatus.mongoConnected) {
-      // Get users count and sample
-      const userCount = await User.countDocuments();
-      const userSample = await User.find().limit(5).lean();
-      dbStatus.collections.users = {
-        count: userCount,
-        sample: userSample
-      };
-      
-      // Get teammates count and sample
-      const teammateCount = await Teammate.countDocuments();
-      const teammateSample = await Teammate.find().limit(5).lean();
-      dbStatus.collections.teammates = {
-        count: teammateCount,
-        sample: teammateSample
-      };
-      
-      // Get sessions count
-      const sessionCount = await Session.countDocuments();
-      dbStatus.collections.sessions = {
-        count: sessionCount
-      };
-    }
-    
-    res.json(dbStatus);
-  } catch (error) {
-    console.error('Error getting DB status:', error);
-    res.status(500).json({ error: 'Failed to get database status', message: error.message });
-  }
 });
 
 // Function to start the server
