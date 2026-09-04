@@ -1,6 +1,14 @@
-# Quick Teams Frontend
+# Teamup 🤝
 
-A platform to help users find the right teammates for their projects.
+**Teamup** (Quick Teams) — a platform that helps users find the right teammates for their projects, built as a hackathon project by a 3-member team.
+
+## 👥 Team / Authors
+
+| Name | GitHub |
+|------|--------|
+| Basant Gautam | [@basant-gautam](https://github.com/basant-gautam) |
+| Krishna Rai | [@KRISHNA-24BCS127](https://github.com/KRISHNA-24BCS127) |
+| Kushagra | [@kushagra](https://github.com/) |
 
 ## Features
 
